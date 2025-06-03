@@ -1,22 +1,29 @@
+
 from flask import Flask, render_template, request, redirect, url_for, session
 from datetime import datetime
+import csv
 import os
 import json
 import gspread
-from google.oauth2.service_account import Credentials
+from oauth2client.service_account import ServiceAccountCredentials
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "defaultsecret")
 
-# Google Sheets 認証
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds_dict = json.loads(os.getenv("GSPREAD_CREDENTIALS"))
-creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
-gc = gspread.authorize(creds)
+def get_gspread_client():
+    json_str = os.getenv("GSPREAD_CREDENTIALS")
+    if not json_str:
+        raise ValueError("GSPREAD_CREDENTIALS is not set")
+    json_data = json.loads(json_str)
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(json_data, scope)
+    return gspread.authorize(credentials)
 
-# スプレッドシートIDとシート名
-SPREADSHEET_ID = "1plcKipsn5Xqv2kdfppKMmhHxaswsOnvt3DMNRzn5Tmk"
-SHEET_NAME = "シート1"
+def append_to_google_sheet(data):
+    gc = get_gspread_client()
+    sh = gc.open_by_key(os.getenv("SPREADSHEET_KEY"))
+    worksheet = sh.sheet1
+    worksheet.append_row(data)
 
 @app.route("/")
 def index():
@@ -48,18 +55,22 @@ def form():
         record = [
             request.form["date"],
             request.form["weekday"],
-            datetime.now().strftime("%H:%M"),
-            session["user"],
             request.form["site_name"],
             request.form["location"],
             request.form["wbgt"],
-            request.form["observer"],
-            request.form["notes"]
+            request.form["measurer"],
+            request.form["notes"],
+            datetime.now().strftime("%Y-%m-%d %H:%M"),
+            session["user"]
         ]
-        worksheet = gc.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
-        worksheet.append_row(record)
-        return render_template("form.html", message="記録が保存されました。")
+        try:
+            append_to_google_sheet(record)
+            message = "Googleスプレッドシートに保存されました。"
+        except Exception as e:
+            message = f"保存に失敗しました: {e}"
+        return render_template("form.html", message=message)
     return render_template("form.html")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
