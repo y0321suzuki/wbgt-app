@@ -1,10 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from datetime import datetime
-import csv
 import os
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "defaultsecret")
+
+# Google Sheets認証設定
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_name("gspread_key.json", scope)
+client = gspread.authorize(creds)
+sheet = client.open_by_key("1plcKipsn5Xqv2kdfppKMmhHxaswsOnvt3DMNRzn5Tmk").sheet1
 
 @app.route("/")
 def index():
@@ -33,7 +40,7 @@ def form():
     if not session.get("user"):
         return redirect(url_for("login"))
     if request.method == "POST":
-        record = [
+        row = [
             request.form["date"],
             request.form["weekday"],
             datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -44,26 +51,9 @@ def form():
             request.form["measurer"],
             request.form["notes"]
         ]
-        with open("wbgt_records.csv", "a", encoding="utf-8", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(record)
+        sheet.append_row(row)
         return render_template("form.html", message="記録が保存されました。")
     return render_template("form.html")
-
-@app.route("/records")
-def records():
-    if not session.get("user"):
-        return redirect(url_for("login"))
-
-    records = []
-    try:
-        with open("wbgt_records.csv", encoding="utf-8") as f:
-            reader = csv.reader(f)
-            records = list(reader)
-    except FileNotFoundError:
-        records = []
-
-    return render_template("records.html", records=records)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
