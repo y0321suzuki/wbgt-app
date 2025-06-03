@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -5,7 +6,7 @@
     <title>記録一覧</title>
 </head>
 <body>
-    <h1>記録一覧（最新100件）</h1>
+    <h2>記録一覧（最新100件）</h2>
     <table border="1">
         <tr>
             <th>記録日時</th>
@@ -14,19 +15,25 @@
             <th>曜日</th>
             <th>現場名</th>
             <th>場所</th>
-            <th>WBGT・気温（°C）</th>
+            <th>WBGT・気温（℃）</th>
             <th>測定者</th>
             <th>備考</th>
         </tr>
         {% for row in records %}
         <tr>
-            {% for col in row %}
-            <td>{{ col }}</td>
-            {% endfor %}
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td>{{ row[3] }}</td>
+            <td>{{ row[4] }}</td>
+            <td>{{ row[5] }}</td>
+            <td>{{ row[6] }}</td>
+            <td>{{ row[7] }}</td>
+            <td>{{ row[8] }}</td>
         </tr>
         {% endfor %}
     </table>
     <br>
-    <a href="/form">戻る</a>
+    <a href="{{ url_for('form') }}">戻る</a>
 </body>
 </html>
