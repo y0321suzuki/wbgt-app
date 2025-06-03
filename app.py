@@ -41,6 +41,7 @@ def form():
             request.form["site_name"],
             request.form["location"],
             request.form["wbgt"],
+            request.form["measurer"],
             request.form["notes"]
         ]
         with open("wbgt_records.csv", "a", encoding="utf-8", newline="") as f:
