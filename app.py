@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, redirect, url_for, session
 from datetime import datetime
 import csv
@@ -47,3 +46,7 @@ def form():
             writer.writerow(record)
         return render_template("form.html", message="記録が保存されました。")
     return render_template("form.html")
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
