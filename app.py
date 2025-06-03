@@ -3,18 +3,12 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from datetime import datetime
 import csv
 import os
-import json
-import gspread
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "defaultsecret")
 
-# Google Sheets 接続設定
-GSPREAD_CREDENTIALS = json.loads(os.environ.get("GSPREAD_CREDENTIALS", "{}"))
-SPREADSHEET_ID = os.getenv("SPREADSHEET_KEY", "")
-SHEET_NAME = "シート1"
-
-gc = gspread.service_account_from_dict(GSPREAD_CREDENTIALS)
+CSV_FILE = "wbgt_records.csv"
+MAX_RECORDS = 100
 
 @app.route("/")
 def index():
@@ -44,16 +38,24 @@ def form():
         return redirect(url_for("login"))
     if request.method == "POST":
         record = [
-            datetime.now().strftime("%Y-%m-%d %H:%M"),
-            session["user"],
+            request.form["date"],
+            request.form["weekday"],
             request.form["site_name"],
             request.form["location"],
             request.form["wbgt"],
-            request.form["person"],
+            request.form["measurer"],
             request.form["notes"]
         ]
-        worksheet = gc.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
-        worksheet.append_row(record)
+        all_records = []
+        if os.path.exists(CSV_FILE):
+            with open(CSV_FILE, newline='', encoding="utf-8") as f:
+                reader = csv.reader(f)
+                all_records = list(reader)
+        all_records.append(record)
+        all_records = all_records[-MAX_RECORDS:]
+        with open(CSV_FILE, "w", newline='', encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerows(all_records)
         return render_template("form.html", message="記録が保存されました。")
     return render_template("form.html")
 
@@ -61,8 +63,9 @@ def form():
 def records():
     if not session.get("user"):
         return redirect(url_for("login"))
-    worksheet = gc.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
-    records = worksheet.get_all_values()
-    headers = records[0] if records else []
-    data = records[1:] if len(records) > 1 else []
-    return render_template("records.html", headers=headers, data=data)
+    records = []
+    if os.path.exists(CSV_FILE):
+        with open(CSV_FILE, newline='', encoding="utf-8") as f:
+            reader = csv.reader(f)
+            records = list(reader)
+    return render_template("records.html", records=records)
