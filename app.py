@@ -37,6 +37,7 @@ def form():
         return redirect(url_for("login"))
     if request.method == "POST":
         record = [
+            datetime.now().strftime("%Y-%m-%d %H:%M"),
             request.form["date"],
             request.form["weekday"],
             request.form["site_name"],
@@ -45,30 +46,33 @@ def form():
             request.form["measurer"],
             request.form["notes"]
         ]
-        all_records = []
+        records = []
         if os.path.exists(CSV_FILE):
-            with open(CSV_FILE, newline='', encoding="utf-8") as f:
+            with open(CSV_FILE, newline="", encoding="utf-8") as f:
                 reader = csv.reader(f)
-                all_records = list(reader)
-        all_records.append(record)
-        all_records = all_records[-MAX_RECORDS:]
-        with open(CSV_FILE, "w", newline='', encoding="utf-8") as f:
+                records = list(reader)
+
+        records.append(record)
+        if len(records) > MAX_RECORDS:
+            records = records[-MAX_RECORDS:]
+
+        with open(CSV_FILE, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerows(all_records)
+            writer.writerows(records)
+
         return render_template("form.html", message="記録が保存されました。")
     return render_template("form.html")
 
 @app.route("/records")
-def records():
+def view_records():
     if not session.get("user"):
         return redirect(url_for("login"))
     records = []
     if os.path.exists(CSV_FILE):
-        with open(CSV_FILE, newline='', encoding="utf-8") as f:
+        with open(CSV_FILE, newline="", encoding="utf-8") as f:
             reader = csv.reader(f)
             records = list(reader)
     return render_template("records.html", records=records)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
