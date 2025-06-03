@@ -1,17 +1,22 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from datetime import datetime
 import os
+import json
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "defaultsecret")
 
-# Google Sheets認証設定
+# Google Sheets 認証
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("gspread_key.json", scope)
-client = gspread.authorize(creds)
-sheet = client.open_by_key("1plcKipsn5Xqv2kdfppKMmhHxaswsOnvt3DMNRzn5Tmk").sheet1
+creds_dict = json.loads(os.getenv("GSPREAD_CREDENTIALS"))
+creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
+gc = gspread.authorize(creds)
+
+# スプレッドシートIDとシート名
+SPREADSHEET_ID = "1plcKipsn5Xqv2kdfppKMmhHxaswsOnvt3DMNRzn5Tmk"
+SHEET_NAME = "シート1"
 
 @app.route("/")
 def index():
@@ -40,21 +45,21 @@ def form():
     if not session.get("user"):
         return redirect(url_for("login"))
     if request.method == "POST":
-        row = [
+        record = [
             request.form["date"],
             request.form["weekday"],
-            datetime.now().strftime("%Y-%m-%d %H:%M"),
+            datetime.now().strftime("%H:%M"),
             session["user"],
             request.form["site_name"],
             request.form["location"],
             request.form["wbgt"],
-            request.form["measurer"],
+            request.form["observer"],
             request.form["notes"]
         ]
-        sheet.append_row(row)
+        worksheet = gc.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
+        worksheet.append_row(record)
         return render_template("form.html", message="記録が保存されました。")
     return render_template("form.html")
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
