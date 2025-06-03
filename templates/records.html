@@ -1,15 +1,22 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>WBGT記録一覧</title>
+    <title>記録一覧</title>
 </head>
 <body>
-    <h2>WBGT記録一覧</h2>
+    <h1>記録一覧（最新100件）</h1>
     <table border="1">
         <tr>
-            <th>日付</th><th>曜日</th><th>現場名</th><th>場所</th><th>WBGT・気温（℃）</th><th>測定者</th><th>備考</th>
+            <th>記録日時</th>
+            <th>ユーザー</th>
+            <th>日付</th>
+            <th>曜日</th>
+            <th>現場名</th>
+            <th>場所</th>
+            <th>WBGT・気温（°C）</th>
+            <th>測定者</th>
+            <th>備考</th>
         </tr>
         {% for row in records %}
         <tr>
@@ -20,6 +27,6 @@
         {% endfor %}
     </table>
     <br>
-    <a href="/form">戻る</a> | <a href="/logout">ログアウト</a>
+    <a href="/form">戻る</a>
 </body>
 </html>
