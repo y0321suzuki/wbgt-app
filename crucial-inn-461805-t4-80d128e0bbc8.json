@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "crucial-inn-461805-t4",
+  "private_key_id": "80d128e0bbc8fbf167090aca87f85bbc0c7796a0",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7N499LcWdj+zp\nxHxKb4BxJTin3aVXUNbELQaQmvdAQWAiqZwOaHbFlfPJjt1Dp60AxXWlD1Z9M48g\nigd+EkuibzgbBcdPz0O+q7wdi9AvaOr71YAgabAfze/CdqEbeMcLN4D4lDeCVVnt\n1YK57EbH+iHAO6WVapO25Akc16tmT+aI/UgJqMMfCef9CZg9rt1TPFqg2HeEDS4U\n8resmQBCf54MNniDuVX9JPf8qCZIJzdHSIc/seShvQZCa6rgSxfRbiswxoJOieV1\nhNZmAZ+aHAafOCfQEgN/24FQkKYQAjbws5KSkDqfEl3/h4aEtI1t+XD1TWcSy6ks\nxrQKaYRTAgMBAAECggEAND1hpY1TGg8iDWzNPbv1PB0lvPmE/GNLOjxSG6GSInTb\njXCEYiTWF3YrK2/Y39r21ENE+4TXHmJ3qp25T31ta2rbXfbz0ZpFDfw/poLv2XrO\nLu05LlIvWgCNyVZuyAqgh8m6DCLXhl+ok0vDiXubmIt8RXafUp0FkL/6pvirFAX3\nP17OKjPhMmvjsqmBgp5KzjTub7fqPWuNu01MRgI0GvAuIkmKFCQif0BqANDnrbN6\n62ossiNNaDV3DKfCyv7A03THKNNoEMgIfyueZY4Gwm1q3SM2IC5hXyH2GuIsRM1B\nHnmD4NmYnJadzShIbkyEjEhkW3Xicn6zB68URKalcQKBgQDld8bql/+izQFcz4xH\nEzgDw7UwYcT9Yexk7XVEefKBJA82cMpU7M6HbqvOheS5v17IidYqqE6Tp+uhvrVx\nB8Hfgoz0X+h30OTmYsaIlGDs70d9nsXBZ3/1rtGmKFHcZ3VemWFaJhMkdMmnSWtX\n9pd5UpajKoBqP1CJKOJu9gR26QKBgQDQ3SnM528J6vUY7IuUYy1SMnrvVFXuVZ6N\nAKRxdSrB9lPxlsBWhbzIfVNjmT6GPfS7FABWkUGkG92GsssM2z6CfGj7YbF4OfjN\n+c88HyX6Z+mV6kHjxzX18OjbaU8NbZCj0hHVgGqktu3QCevHbiP7cYlnebcNbHI2\n3sdcz9CT2wKBgDx5rLr3BDBrxwgmytmQfxq+4Wm22qvMuvh+fIFngjn2vuuiHjDz\nmBqpWC49q2IoxVokuYTUhqDziG5ATKFVYgr95RgijqnFLA5rydcFA+ZtyXGZ/pRS\nKq8dO7OGvMxRl+UulzGjBzh8bwjfmKK+In2e/oRSFzXpKdh8JfEIdXTBAoGAISqt\no5swt8t2xlFxzMt+++mGOhETYDh6Z/utIVMwygI6zEdbHaI5G0FDh7JjCmA2R6ri\nbty8JrpCEEy+D7mVEJV++kRGMUhLaTH9JZfwqPXtUuATPH964yYxY/4yDnjSmiEW\nseelh6iA1SNuLIoh7qDV5/edCOWqsWnpEKTzgzcCgYEAgDmjAdSWElibHoIxRFG9\nE0hCc8szw8tUCNQozI69rxZIfcsFH7uDKreaq1Q+OKF3K4TONHOmsEUBBOs4Rzlo\ntjIOraHEYMe7ml2ovns+KYzFKgN3YrVPuI8uD3U4I88A4piDE0VAeVP3TwekprLl\nOjxDH9NV+0kPSA5aKvJg/14=\n-----END PRIVATE KEY-----\n",
+  "client_email": "wbgt-writer@crucial-inn-461805-t4.iam.gserviceaccount.com",
+  "client_id": "118304707758213343603",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/wbgt-writer%40crucial-inn-461805-t4.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
