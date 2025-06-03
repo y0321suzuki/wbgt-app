@@ -34,6 +34,8 @@ def form():
         return redirect(url_for("login"))
     if request.method == "POST":
         record = [
+            request.form["date"],
+            request.form["weekday"],
             datetime.now().strftime("%Y-%m-%d %H:%M"),
             session["user"],
             request.form["site_name"],
@@ -46,6 +48,21 @@ def form():
             writer.writerow(record)
         return render_template("form.html", message="記録が保存されました。")
     return render_template("form.html")
+
+@app.route("/records")
+def records():
+    if not session.get("user"):
+        return redirect(url_for("login"))
+
+    records = []
+    try:
+        with open("wbgt_records.csv", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            records = list(reader)
+    except FileNotFoundError:
+        records = []
+
+    return render_template("records.html", records=records)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
