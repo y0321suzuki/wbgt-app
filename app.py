@@ -5,6 +5,7 @@ import json
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import tempfile
+import pytz
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "defaultsecret")
@@ -50,16 +51,20 @@ def form():
     if not session.get("user"):
         return redirect(url_for("login"))
     if request.method == "POST":
-        now = datetime.now().strftime("%Y-%m-%d %H:%M")
+        tz = pytz.timezone("Asia/Tokyo")
+        now = datetime.now(tz)
+        formatted_datetime = now.strftime("%Y-%m-%d %H:%M")
+        weekday_ja = ["月", "火", "水", "木", "金", "土", "日"][now.weekday()]
+
         record = [
-            now,
-            request.form["date"],
-            request.form["weekday"],
-            request.form["site_name"],
-            request.form["location"],
-            request.form["wbgt"],
-            request.form["measurer"],
-            request.form["notes"]
+            request.form["date"],              # 日付（カレンダーで入力）
+            request.form["site_name"],         # 現場名
+            request.form["location"],          # 場所
+            request.form["wbgt"],              # WBGT
+            request.form["measurer"],          # 測定者
+            request.form["notes"],             # 備考
+            formatted_datetime,                # 記録日時（日本時間）
+            weekday_ja                         # 曜日
         ]
         worksheet.append_row(record)
         return render_template("form.html", message="記録が保存されました。")
@@ -72,6 +77,5 @@ def records():
     records = worksheet.get_all_values()[::-1][:100]
     return render_template("records.html", records=records)
 
-# Render で動作させるために必要なポートとホストの指定
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
