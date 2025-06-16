@@ -1,24 +1,103 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head><meta charset="UTF-8"><title>WBGT記録フォーム</title></head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WBGT記録フォーム</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f6f8fa;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    form {
+      max-width: 480px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.08);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    textarea {
+      resize: vertical;
+    }
+    .btn {
+      margin-top: 20px;
+      background: #1e90ff;
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 6px;
+      width: 100%;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #0078d4;
+    }
+    .note {
+      text-align: center;
+      margin-top: 20px;
+      color: green;
+    }
+    .nav {
+      margin-top: 15px;
+      text-align: center;
+    }
+    .nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #0078d4;
+    }
+  </style>
+</head>
 <body>
-<h1>WBGT記録フォーム</h1>
-<form method="POST">
-    日付:<input type="date" name="date"><br>
-    曜日:
-    <select name="weekday">
-        <option>月</option><option>火</option><option>水</option>
-        <option>木</option><option>金</option><option>土</option><option>日</option>
-    </select><br>
-    現場名:<input type="text" name="site_name"><br>
-    場所:<input type="text" name="location"><br>
-    WBGT・気温（°C）:<input type="text" name="wbgt"><br>
-    測定者:<input type="text" name="measurer"><br>
-    備考:<input type="text" name="notes"><br>
-    <input type="submit" value="記録する">
-</form>
-{% if message %}<p>{{ message }}</p>{% endif %}
-<a href="/records">CSV閲覧</a><br>
-<a href="/logout">ログアウト</a>
+  <h2>WBGT記録フォーム</h2>
+  {% if message %}
+    <div class="note">{{ message }}</div>
+  {% endif %}
+  <form method="POST">
+    <label for="date">日付</label>
+    <input type="date" name="date" required>
+
+    <label for="site_name">現場名</label>
+    <input type="text" name="site_name" required>
+
+    <label for="location">場所</label>
+    <input type="text" name="location" required>
+
+    <label for="wbgt">WBGT・気温（°C）</label>
+    <input type="text" name="wbgt" required>
+
+    <label for="measurer">測定者</label>
+    <input type="text" name="measurer" required>
+
+    <label for="notes">備考</label>
+    <textarea name="notes" rows="4"></textarea>
+
+    <button type="submit" class="btn">記録する</button>
+  </form>
+
+  <div class="nav">
+    <a href="/records">CSV閲覧</a> | <a href="/logout">ログアウト</a>
+  </div>
 </body>
 </html>
