@@ -1,66 +1,83 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ログイン</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ログイン | WBGT記録アプリ</title>
+  <!-- アプリアイコン設定 -->
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='icon.png') }}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icon.png') }}">
+  <meta name="theme-color" content="#ffffff" />
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
       margin: 0;
-      padding: 20px;
-      background-color: #f6f8fa;
+      padding: 0;
     }
-    .container {
+    .login-container {
       max-width: 400px;
-      margin: 60px auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-sizing: border-box;
     }
     h2 {
       text-align: center;
-      margin-bottom: 25px;
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
     }
     input {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      font-size: 1rem;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 16px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 5px;
+      box-sizing: border-box;
     }
-    .btn {
+    button {
       width: 100%;
       padding: 12px;
-      background-color: #1e90ff;
+      margin-top: 20px;
+      background-color: #007bff;
       color: #fff;
+      font-size: 16px;
       border: none;
-      border-radius: 6px;
-      font-size: 1rem;
+      border-radius: 5px;
       cursor: pointer;
     }
-    .btn:hover {
-      background-color: #0078d4;
+    button:hover {
+      background-color: #0056b3;
     }
     .error {
       color: red;
       text-align: center;
-      margin-bottom: 10px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="login-container">
     <h2>ログイン</h2>
     {% if error %}
-      <div class="error">{{ error }}</div>
+    <div class="error">{{ error }}</div>
     {% endif %}
-    <form method="post">
-      <input type="text" name="username" placeholder="ユーザー名" required>
-      <input type="password" name="password" placeholder="パスワード" required>
-      <button type="submit" class="btn">ログイン</button>
+    <form method="POST">
+      <label for="username">ユーザー名</label>
+      <input type="text" name="username" required />
+
+      <label for="password">パスワード</label>
+      <input type="password" name="password" required />
+
+      <button type="submit">ログイン</button>
     </form>
   </div>
 </body>
