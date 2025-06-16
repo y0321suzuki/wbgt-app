@@ -1,13 +1,27 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from datetime import datetime
-import csv
 import os
+import json
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+import tempfile
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "defaultsecret")
 
-CSV_FILE = "wbgt_records.csv"
-MAX_RECORDS = 100
+# 環境変数からJSONを読み込んで一時ファイルとして使う
+json_content = os.getenv("GSPREAD_CREDENTIALS_JSON")
+with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".json") as tmp_file:
+    tmp_file.write(json_content)
+    tmp_file.flush()
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(
+        tmp_file.name,
+        scopes=["https://www.googleapis.com/auth/spreadsheets"]
+    )
+    gc = gspread.authorize(credentials)
+
+sh = gc.open_by_key("1plcKipsn5Xqv2kdfppKMmhHxaswsOnvt3DMNRzn5Tmk")
+worksheet = sh.get_worksheet(0)
 
 @app.route("/")
 def index():
@@ -36,8 +50,9 @@ def form():
     if not session.get("user"):
         return redirect(url_for("login"))
     if request.method == "POST":
+        now = datetime.now().strftime("%Y-%m-%d %H:%M")
         record = [
-            datetime.now().strftime("%Y-%m-%d %H:%M"),
+            now,
             request.form["date"],
             request.form["weekday"],
             request.form["site_name"],
@@ -46,33 +61,13 @@ def form():
             request.form["measurer"],
             request.form["notes"]
         ]
-        records = []
-        if os.path.exists(CSV_FILE):
-            with open(CSV_FILE, newline="", encoding="utf-8") as f:
-                reader = csv.reader(f)
-                records = list(reader)
-
-        records.append(record)
-        if len(records) > MAX_RECORDS:
-            records = records[-MAX_RECORDS:]
-
-        with open(CSV_FILE, "w", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerows(records)
-
+        worksheet.append_row(record)
         return render_template("form.html", message="記録が保存されました。")
     return render_template("form.html")
 
 @app.route("/records")
-def view_records():
+def records():
     if not session.get("user"):
         return redirect(url_for("login"))
-    records = []
-    if os.path.exists(CSV_FILE):
-        with open(CSV_FILE, newline="", encoding="utf-8") as f:
-            reader = csv.reader(f)
-            records = list(reader)
+    records = worksheet.get_all_values()[::-1][:100]
     return render_template("records.html", records=records)
-
-if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
