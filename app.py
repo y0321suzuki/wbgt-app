@@ -10,7 +10,6 @@ import pytz
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "defaultsecret")
 
-# 環境変数からJSONを読み込んで一時ファイルとして使う
 json_content = os.getenv("GSPREAD_CREDENTIALS_JSON")
 with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".json") as tmp_file:
     tmp_file.write(json_content)
@@ -57,25 +56,17 @@ def form():
         weekday_ja = ["月", "火", "水", "木", "金", "土", "日"][now.weekday()]
 
         record = [
-            request.form["date"],              # 日付（カレンダーで入力）
+            formatted_datetime,                # 記録日時（日本時間）
+            weekday_ja,                        # 曜日
             request.form["site_name"],         # 現場名
             request.form["location"],          # 場所
             request.form["wbgt"],              # WBGT
             request.form["measurer"],          # 測定者
-            request.form["notes"],             # 備考
-            formatted_datetime,                # 記録日時（日本時間）
-            weekday_ja                         # 曜日
+            request.form["notes"]              # 備考
         ]
         worksheet.append_row(record)
         return render_template("form.html", message="記録が保存されました。")
     return render_template("form.html")
-
-@app.route("/records")
-def records():
-    if not session.get("user"):
-        return redirect(url_for("login"))
-    records = worksheet.get_all_values()[::-1][:100]
-    return render_template("records.html", records=records)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
