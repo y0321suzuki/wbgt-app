@@ -71,3 +71,7 @@ def records():
         return redirect(url_for("login"))
     records = worksheet.get_all_values()[::-1][:100]
     return render_template("records.html", records=records)
+
+# Render で動作させるために必要なポートとホストの指定
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
