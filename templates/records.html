@@ -1,32 +1,17 @@
-
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>記録一覧</title>
-</head>
+<head><meta charset="UTF-8"><title>記録一覧</title></head>
 <body>
-    <h2>記録一覧（最新100件）</h2>
-    <table border="1">
-        <tr>
-            <th>記録日時</th>
-            <th>日付</th>
-            <th>曜日</th>
-            <th>現場名</th>
-            <th>場所</th>
-            <th>WBGT・気温（°C）</th>
-            <th>測定者</th>
-            <th>備考</th>
-        </tr>
-        {% for row in records %}
-        <tr>
-            {% for item in row %}
-            <td>{{ item }}</td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
-    </table>
-    <br>
-    <a href="{{ url_for('form') }}">戻る</a>
+<h2>記録一覧（最新100件）</h2>
+<table border="1">
+    <tr>
+        <th>記録日時</th><th>日付</th><th>曜日</th>
+        <th>現場名</th><th>場所</th><th>WBGT・気温（°C）</th><th>測定者</th><th>備考</th>
+    </tr>
+    {% for row in records %}
+    <tr>{% for item in row %}<td>{{ item }}</td>{% endfor %}</tr>
+    {% endfor %}
+</table>
+<a href="/form">戻る</a>
 </body>
 </html>
