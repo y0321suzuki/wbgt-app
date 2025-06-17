@@ -2,67 +2,75 @@ import os
 import json
 import datetime
 import pytz
-import tempfile
-from flask import Flask, render_template, request, redirect, url_for, session
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from flask import Flask, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.environ.get("SECRET_KEY", "your_secret_key")
 
-# Google Sheetsの設定
-SCOPE = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-SHEET_ID = "1VkDVyJnLxHZ4K4e1JkygbGX8Kcw5Y9QMmezIMwxZomc"  # 新しいシートID
+# Google Sheets API設定
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+json_content = os.environ.get("GSPREAD_CREDENTIALS")
+credentials = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(json_content), scope)
+gc = gspread.authorize(credentials)
 
-@app.route("/", methods=["GET", "POST"])
+SPREADSHEET_URL = os.environ.get("SPREADSHEET_URL")
+
+@app.route("/")
+def index():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return render_template("form.html")
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    error = None
     if request.method == "POST":
-        user = request.form["username"]
-        pw = request.form["password"]
-        if (user == "Nitiei" and pw == "iw-sekkei.01") or (user == "staff01" and pw == "staffpass01"):
-            session["user"] = user
-            return redirect(url_for("form"))
+        username = request.form["username"]
+        password = request.form["password"]
+        if username == "Nitiei" and password == "8823":
+            session["logged_in"] = True
+            return redirect(url_for("index"))
         else:
-            error = "ログインに失敗しました"
-    return render_template("login.html", error=error)
+            return render_template("login.html", error="ログイン情報が間違っています")
+    return render_template("login.html")
 
 @app.route("/logout")
 def logout():
-    session.clear()
+    session.pop("logged_in", None)
     return redirect(url_for("login"))
 
-@app.route("/form", methods=["GET", "POST"])
-def form():
-    if "user" not in session:
+@app.route("/submit", methods=["POST"])
+def submit():
+    if not session.get("logged_in"):
         return redirect(url_for("login"))
 
-    if request.method == "POST":
-        date = request.form["date"]
-        site = request.form["site"]
-        location = request.form["location"]
-        wbgt = request.form["wbgt"]
-        person = request.form["person"]
-        memo = request.form["memo"]
+    date = request.form["date"]
+    site = request.form["site"]
+    place = request.form["place"]
+    wbgt = request.form["wbgt"]
+    person = request.form["person"]
+    note = request.form["note"]
 
-        # 現在時刻と曜日を取得
-        tz = pytz.timezone("Asia/Tokyo")
-        now = datetime.datetime.now(tz)
-        timestamp = now.strftime("%Y-%m-%d %H:%M")
-        weekday = ["月", "火", "水", "木", "金", "土", "日"][now.weekday()]
+    now = datetime.datetime.now(pytz.timezone("Asia/Tokyo"))
+    day_of_week = ["月", "火", "水", "木", "金", "土", "日"][now.weekday()]
+    timestamp = now.strftime("%Y-%m-%d %H:%M")
 
-        # JSONキーをtempfileに一時保存
-        json_content = os.getenv("GSPREAD_CREDENTIALS")
-        tmp_file = tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".json")
-        tmp_file.write(json_content)
-        tmp_file.close()
+    try:
+        sh = gc.open_by_url(SPREADSHEET_URL)
+        worksheet = sh.sheet1
+        worksheet.append_row([timestamp, date, day_of_week, site, place, wbgt, person, note])
+    except Exception as e:
+        return str(e)
 
-        creds = ServiceAccountCredentials.from_json_keyfile_name(tmp_file.name, SCOPE)
-        client = gspread.authorize(creds)
-        sheet = client.open_by_key(SHEET_ID).sheet1
-        sheet.append_row([timestamp, weekday, site, location, wbgt, person, memo])
+    return redirect(url_for("index"))
 
-    return render_template("form.html")
+@app.route("/records")
+def records():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return redirect(SPREADSHEET_URL)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
