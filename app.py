@@ -1,87 +1,98 @@
 
-import os
-import json
-from flask import Flask, request, redirect, render_template, session
+from flask import Flask, render_template, request, redirect, url_for, session
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-from datetime import datetime
+import json
+import os
 import pytz
+from datetime import datetime
+from oauth2client.service_account import ServiceAccountCredentials
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
+# ログイン認証用
+USER_CREDENTIALS = {
+    "username": "Nitiei",
+    "password": "iw-sekkei.01"
+}
+
 # Google Sheets 認証設定
-def get_gspread_client():
-    json_content = os.environ.get("GSPREAD_CREDENTIALS")
-    if not json_content:
-        raise ValueError("GSPREAD_CREDENTIALS が環境変数に設定されていません。")
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+    json.loads(os.environ['GSPREAD_CREDENTIALS']), scope
+)
+gc = gspread.authorize(credentials)
 
-    credentials_dict = json.loads(json_content)
-    scope = ['https://spreadsheets.google.com/feeds',
-             'https://www.googleapis.com/auth/drive']
-    credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
-    return gspread.authorize(credentials)
-
-# スプレッドシートのURLまたはキー
-SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1VkDVyJnLxHZ4K4e1JkygbGX8Kcw5Y9QMmezIMwxZomc/edit?usp=sharing"
+# スプレッドシートIDとシート名
+SPREADSHEET_KEY = "1VkDVyJnLxHZ4K4e1JkygbGX8Kcw5Y9QMmezIMwxZomc"
+SHEET_NAME = "シート1"
 
 @app.route('/')
-def index():
-    return redirect('/form')
-
-@app.route('/form', methods=['GET', 'POST'])
-def form():
-    if request.method == 'POST':
-        date = request.form['date']
-        site = request.form['site']
-        place = request.form['place']
-        wbgt = request.form['wbgt']
-        measurer = request.form['measurer']
-        note = request.form['note']
-
-        # 現在時刻（JST）
-        jst = pytz.timezone('Asia/Tokyo')
-        record_time = datetime.now(jst).strftime('%Y-%m-%d %H:%M')
-
-        # 曜日
-        day_of_week = ['月', '火', '水', '木', '金', '土', '日'][datetime.strptime(date, '%Y-%m-%d').weekday()]
-
-        try:
-            gc = get_gspread_client()
-            sh = gc.open_by_url(SPREADSHEET_URL)
-            worksheet = sh.sheet1
-            worksheet.append_row([record_time, date, day_of_week, site, place, wbgt, measurer, note])
-            session['message'] = '記録を保存しました。'
-        except Exception as e:
-            session['message'] = f'エラーが発生しました: {e}'
-
-        return redirect('/form')
-
-    message = session.pop('message', None)
-    return render_template('form.html', message=message)
-
-@app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        session['logged_in'] = True
-        return redirect('/form')
     return render_template('login.html')
 
-@app.route('/logout')
-def logout():
-    session.pop('logged_in', None)
-    return redirect('/login')
+@app.route('/login', methods=['POST'])
+def do_login():
+    username = request.form['username']
+    password = request.form['password']
+    if username == USER_CREDENTIALS["username"] and password == USER_CREDENTIALS["password"]:
+        session['logged_in'] = True
+        session['username'] = username
+        return redirect('/form')
+    return render_template('login.html', error='ログイン情報が間違っています')
 
-@app.route('/records')
-def records():
+@app.route('/form')
+def form():
+    if not session.get('logged_in'):
+        return redirect('/')
+    return render_template('form.html')
+
+@app.route('/submit', methods=['POST'])
+def submit():
+    if not session.get('logged_in'):
+        return redirect('/')
+
+    date = request.form['date']
+    site = request.form['site']
+    location = request.form['location']
+    temperature = request.form['temperature']
+    operator = request.form['operator']
+    notes = request.form['notes']
+
+    # 現在時刻（日本時間）を取得
+    now = datetime.now(pytz.timezone('Asia/Tokyo'))
+    weekday = ['月', '火', '水', '木', '金', '土', '日'][now.weekday()]
+    now_str = now.strftime('%Y-%m-%d %H:%M')
+
     try:
-        gc = get_gspread_client()
-        sh = gc.open_by_url(SPREADSHEET_URL)
-        worksheet = sh.sheet1
-        records = worksheet.get_all_values()[1:]  # ヘッダーを除く
-        return render_template('records.html', records=records)
+        sh = gc.open_by_key(SPREADSHEET_KEY)
+        worksheet = sh.worksheet(SHEET_NAME)
+
+        worksheet.append_row([
+            now_str,
+            date,
+            weekday,
+            site,
+            location,
+            temperature,
+            operator,
+            notes
+        ])
     except Exception as e:
         return f"エラーが発生しました: {e}"
 
+    return redirect('/form')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
+
+@app.route('/records')
+def records():
+    if not session.get('logged_in'):
+        return redirect('/')
+    return redirect("https://docs.google.com/spreadsheets/d/1VkDVyJnLxHZ4K4e1JkygbGX8Kcw5Y9QMmezIMwxZomc/edit?usp=sharing")
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=10000)
