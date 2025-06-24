@@ -1,66 +1,57 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-from datetime import datetime, timedelta
 import os
-import pytz
-import gspread
 import json
+import datetime
+from flask import Flask, render_template, request, redirect, session
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "defaultsecret")
+app.secret_key = "your_secret_key"
 
-# Google Sheets 設定
-SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1VkDVyJnLxHZ4K4e1JkygbGX8Kcw5Y9QMmezIMwxZomc/edit#gid=0"
+USERNAME = "Nitiei"
+PASSWORD = "iw-sekkei.01"
 
-def get_gsheet():
-    json_str = os.getenv("GSPREAD_CREDENTIALS")
-    info = json.loads(json_str)
-    gc = gspread.service_account_from_dict(info)
-    sh = gc.open_by_url(SPREADSHEET_URL)
-    return sh.sheet1
+# Google Sheets 接続設定
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+    json.loads(os.environ["GSPREAD_CREDENTIALS"]),
+    scope
+)
+gc = gspread.authorize(credentials)
+spreadsheet_url = "https://docs.google.com/spreadsheets/d/1VkDVyJnLxHZ4K4e1JkygbGX8Kcw5Y9QMmezIMwxZomc/edit"
+sheet = gc.open_by_url(spreadsheet_url).sheet1
 
-@app.route("/", methods=["GET"])
-def index():
-    return redirect(url_for("login"))
-
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        user = request.form["username"]
-        pw = request.form["password"]
-        if user == "Nitiei" and pw == "iw-sekkei.01":
-            session["user"] = user
-            return redirect(url_for("form"))
-        return render_template("login.html", error="ログイン情報が間違っています。")
+        username = request.form["username"]
+        password = request.form["password"]
+        if username == USERNAME and password == PASSWORD:
+            session["user"] = username
+            return redirect("/form")
+        else:
+            return render_template("login.html", error=True)
     return render_template("login.html")
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
 
 @app.route("/form", methods=["GET", "POST"])
 def form():
-    if not session.get("user"):
-        return redirect(url_for("login"))
+    if "user" not in session:
+        return redirect("/")
     if request.method == "POST":
-        tz = pytz.timezone("Asia/Tokyo")
-        now = datetime.now(tz)
         date = request.form["date"]
-        weekday = request.form["weekday"]
-        site_name = request.form["site_name"]
+        site = request.form["site"]
         location = request.form["location"]
         wbgt = request.form["wbgt"]
-        measurer = request.form["measurer"]
-        notes = request.form["notes"]
-        row = [date, site_name, location, wbgt, measurer, notes, weekday, now.strftime("%Y-%m-%d %H:%M:%S")]
-        try:
-            sheet = get_gsheet()
-            sheet.append_row(row)
-            return render_template("form.html", message="記録を保存しました。")
-        except Exception as e:
-            return render_template("form.html", error=f"保存中にエラーが発生しました: {str(e)}")
+        person = request.form["person"]
+        note = request.form["note"]
+        day_of_week = ["月", "火", "水", "木", "金", "土", "日"][datetime.datetime.strptime(date, "%Y-%m-%d").weekday()]
+        now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).strftime("%Y-%m-%d %H:%M")
+        row = [now, date, day_of_week, site, location, wbgt, person, note]
+        sheet.append_row(row)
+        return redirect("/form")
     return render_template("form.html")
 
-@app.route("/records")
-def records():
-    return redirect(SPREADSHEET_URL)
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    return redirect("/")
